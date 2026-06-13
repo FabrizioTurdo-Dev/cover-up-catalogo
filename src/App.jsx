@@ -1,16 +1,16 @@
 // src/App.jsx
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
-import Catalogo from "./pages/Catalogo";
-import Admin from "./pages/Admin";
+import CatalogoCoverUp from "./pages/CatalogoCoverUp";
+import AdminPricing from "./pages/AdminPricing";
 
 export default function App() {
   return (
     <AppProvider>
       <HashRouter>
         <Routes>
-          <Route path="/"       element={<Catalogo />} />
-          <Route path="/admin"  element={<Admin />} />
+          <Route path="/"       element={<CatalogoCoverUp />} />
+          <Route path="/admin"  element={<AdminPricing />} />
         </Routes>
       </HashRouter>
     </AppProvider>
