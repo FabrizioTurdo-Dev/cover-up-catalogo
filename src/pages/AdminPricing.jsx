@@ -1,5 +1,5 @@
 // src/pages/AdminPricing.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../data/store";
@@ -28,14 +28,29 @@ export default function AdminPricing() {
     articulo: "",
     categoria: "",
     medidas: "",
+    variante_de: "",
     precio_30_unidades: 0,
     precio_120_unidades: 0,
     precio_500_unidades: 0,
     image: ""
   });
 
+  // Estado para editar variante de producto existente
+  const [editVarianteDe, setEditVarianteDe] = useState("");
+  const [isSavingVariante, setIsSavingVariante] = useState(false);
+
   const selectedProduct = products.find(p => p.id === selectedProductId);
   const config = selectedProduct ? priceConfig[selectedProduct.id] : null;
+
+  // Sincronizar variante_de del producto seleccionado
+  useEffect(() => {
+    if (selectedProduct) {
+      setEditVarianteDe(selectedProduct.varianteDe || "");
+    }
+  }, [selectedProduct]);
+
+  // Productos que pueden ser base (no son variantes de nadie, o son base themselves)
+  const baseProducts = products.filter(p => p.active && !p.varianteDe);
 
   const handleTierChange = (tierIndex, field, value) => {
     if (!config) return;
@@ -110,6 +125,7 @@ export default function AdminPricing() {
             articulo: newProduct.articulo,
             categoria: newProduct.categoria || null,
             medidas: newProduct.medidas || null,
+            variante_de: newProduct.variante_de || null,
             precio_30_unidades: parseInt(newProduct.precio_30_unidades) || 0,
             precio_120_unidades: parseInt(newProduct.precio_120_unidades) || 0,
             precio_500_unidades: parseInt(newProduct.precio_500_unidades) || 0,
@@ -124,7 +140,7 @@ export default function AdminPricing() {
       
       // Limpiar formulario y cerrar
       setNewProduct({
-        codigos: "", articulo: "", categoria: "", medidas: "",
+        codigos: "", articulo: "", categoria: "", medidas: "", variante_de: "",
         precio_30_unidades: 0, precio_120_unidades: 0, precio_500_unidades: 0, image: ""
       });
       setShowNewProductForm(false);
@@ -163,6 +179,31 @@ export default function AdminPricing() {
       setErrorMsg("Error al guardar la imagen. Intenta nuevamente.");
     } finally {
       setIsSavingImage(false);
+    }
+  };
+
+  // 4. ACTUALIZAR VARIANTE DE UN PRODUCTO EXISTENTE
+  const handleSaveVariante = async () => {
+    if (!selectedProductId) return;
+
+    setIsSavingVariante(true);
+    setErrorMsg("");
+
+    try {
+      const { error } = await supabase
+        .from("cover_up")
+        .update({ variante_de: editVarianteDe || null })
+        .eq("id", selectedProductId);
+
+      if (error) throw error;
+
+      await fetchProducts();
+      showSuccess(editVarianteDe ? `Ahora es variante de ${editVarianteDe}` : "Producto es base (sin variante)");
+    } catch (error) {
+      console.error("Error al guardar variante:", error);
+      setErrorMsg("Error al guardar la variante. Intenta nuevamente.");
+    } finally {
+      setIsSavingVariante(false);
     }
   };
 
@@ -221,6 +262,26 @@ export default function AdminPricing() {
                 <Input label="Nombre del Artículo" value={newProduct.articulo} onChange={e => setNewProduct({...newProduct, articulo: e.target.value})} required />
                 <Input label="Categoría" value={newProduct.categoria} onChange={e => setNewProduct({...newProduct, categoria: e.target.value})} />
                 <Input label="Medidas (ej: 30x20x10)" value={newProduct.medidas} onChange={e => setNewProduct({...newProduct, medidas: e.target.value})} />
+              </div>
+
+              {/* Selector de variante */}
+              <div style={{ marginTop: 16 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "#888", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>
+                  ES VARIANTE DE (opcional)
+                </label>
+                <select
+                  value={newProduct.variante_de}
+                  onChange={e => setNewProduct({...newProduct, variante_de: e.target.value})}
+                  style={{
+                    width: "100%", padding: "9px 12px", borderRadius: 8,
+                    border: "1.5px solid #E8E8E8", fontSize: 13, background: "#fff", outline: "none",
+                  }}
+                >
+                  <option value="">No es variante (producto base)</option>
+                  {baseProducts.map(p => (
+                    <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+                  ))}
+                </select>
               </div>
               
               <h3 style={{ fontSize: 13, fontWeight: 800, margin: "20px 0 12px 0", textTransform: "uppercase", color: "#555" }}>Precios por Escalón</h3>
@@ -306,6 +367,42 @@ export default function AdminPricing() {
                   {isSavingImage && (
                     <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
                       ⏳ Guardando imagen...
+                    </div>
+                  )}
+                </div>
+
+                {/* Editar variante */}
+                <div style={{ borderTop: "1px solid #F0F0F0", paddingTop: 24, marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 800, marginBottom: 12 }}>Variante / Color</h3>
+                  <p style={{ fontSize: 12, color: "#666", marginBottom: 12 }}>
+                    Si este producto es una variante de otro (mismo modelo, distinto color), seleccioná el producto base.
+                  </p>
+                  <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: "#888", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>
+                        ES VARIANTE DE
+                      </label>
+                      <select
+                        value={editVarianteDe}
+                        onChange={e => setEditVarianteDe(e.target.value)}
+                        style={{
+                          width: "100%", padding: "9px 12px", borderRadius: 8,
+                          border: "1.5px solid #E8E8E8", fontSize: 13, background: "#fff", outline: "none",
+                        }}
+                      >
+                        <option value="">No es variante (producto base)</option>
+                        {baseProducts.filter(p => p.id !== selectedProductId).map(p => (
+                          <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button variant="success" onClick={handleSaveVariante} disabled={isSavingVariante}>
+                      {isSavingVariante ? "⏳" : "✓ Guardar"}
+                    </Button>
+                  </div>
+                  {selectedProduct.varianteDe && (
+                    <div style={{ fontSize: 11, color: "#999", marginTop: 8 }}>
+                      Actualmente es variante de: <strong>{selectedProduct.varianteDe}</strong>
                     </div>
                   )}
                 </div>

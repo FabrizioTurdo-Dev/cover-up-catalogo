@@ -21,6 +21,7 @@ function mapSupabaseProduct(dbItem) {
       { min: 120, max: 499 },
       { min: 500, max: 9999 },
     ],
+    varianteDe: dbItem.variante_de || null,
   };
 }
 
