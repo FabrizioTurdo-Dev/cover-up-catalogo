@@ -1,11 +1,10 @@
 // src/pages/CatalogoCoverUp.jsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import {
   formatPrice,
   getGlobalTierIndex,
   DEFAULT_TIERS,
-  SELLER_PHONE,
 } from "../data/store";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 
@@ -42,6 +41,7 @@ function PriceDisplay({ product, globalQty, priceConfig }) {
 function ProductModal({ group, selectedIdx, onClose, onSelectVariant, priceConfig, globalQty, onAdd }) {
   const product = group.variants[selectedIdx];
   const [qty, setQty] = useState(1);
+  const [modalImgIdx, setModalImgIdx] = useState(0);
 
   const tierPrices = priceConfig[product.id]?.prices || product.basePrices;
   const tiers = priceConfig[product.id]?.tiers || product.tiers || DEFAULT_TIERS;
@@ -49,6 +49,14 @@ function ProductModal({ group, selectedIdx, onClose, onSelectVariant, priceConfi
   const currentUnitPrice = tierPrices[tierIndex] || tierPrices[0];
   const totalPrice = currentUnitPrice * qty;
   const hasVariants = group.variants.length > 1;
+
+  const productImages = (product.images && product.images.length > 0)
+    ? product.images
+    : (product.imageUrl ? [product.imageUrl] : []);
+
+  useEffect(() => {
+    setModalImgIdx(0);
+  }, [selectedIdx]);
 
   return (
     <div
@@ -86,17 +94,70 @@ function ProductModal({ group, selectedIdx, onClose, onSelectVariant, priceConfi
             background: "#F5F5F5", height: 280,
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: 24, borderRadius: "16px 16px 0 0",
+            position: "relative",
           }}>
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-              />
+            {productImages.length > 0 ? (
+              <>
+                <img
+                  src={productImages[modalImgIdx] || productImages[0]}
+                  alt={product.name}
+                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                />
+                {productImages.length > 1 && (
+                  <>
+                    {modalImgIdx > 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setModalImgIdx(modalImgIdx - 1); }}
+                        style={{
+                          position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)",
+                          width: 32, height: 32, borderRadius: 16,
+                          background: "rgba(0,0,0,0.4)", color: "#fff", border: "none",
+                          cursor: "pointer", fontSize: 14, fontWeight: 700,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        ‹
+                      </button>
+                    )}
+                    {modalImgIdx < productImages.length - 1 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setModalImgIdx(modalImgIdx + 1); }}
+                        style={{
+                          position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                          width: 32, height: 32, borderRadius: 16,
+                          background: "rgba(0,0,0,0.4)", color: "#fff", border: "none",
+                          cursor: "pointer", fontSize: 14, fontWeight: 700,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        ›
+                      </button>
+                    )}
+                  </>
+                )}
+              </>
             ) : (
               <span style={{ fontSize: 80 }}>{product.emoji}</span>
             )}
           </div>
+          {productImages.length > 1 && (
+            <div style={{
+              display: "flex", justifyContent: "center", gap: 6,
+              padding: "8px 0", background: "#F5F5F5",
+            }}>
+              {productImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setModalImgIdx(i); }}
+                  style={{
+                    width: 8, height: 8, borderRadius: 4, border: "none",
+                    background: i === modalImgIdx ? "#1a1a1a" : "#CCC",
+                    cursor: "pointer", padding: 0,
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Contenido */}
@@ -212,8 +273,13 @@ function ProductModal({ group, selectedIdx, onClose, onSelectVariant, priceConfi
 function ProductCard({ group, onAdd, priceConfig, globalQty, onImageClick }) {
   const [qty, setQty] = useState(1);
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [cardImgIdx, setCardImgIdx] = useState(0);
 
   const product = group.variants[selectedIdx];
+
+  useEffect(() => {
+    setCardImgIdx(0);
+  }, [selectedIdx]);
 
   const bgColors = {
     organizadores: { base: "#F0F8FF", accent: "#E0F0FF" },
@@ -232,6 +298,10 @@ function ProductCard({ group, onAdd, priceConfig, globalQty, onImageClick }) {
   const totalPrice = currentUnitPrice * qty;
 
   const hasVariants = group.variants.length > 1;
+
+  const cardImages = (product.images && product.images.length > 0)
+    ? product.images
+    : (product.imageUrl ? [product.imageUrl] : []);
 
   return (
     <div
@@ -258,7 +328,7 @@ function ProductCard({ group, onAdd, priceConfig, globalQty, onImageClick }) {
         onClick={() => onImageClick(group, selectedIdx)}
         style={{
           background: bg.base,
-          height: 100,
+          height: 120,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -285,16 +355,50 @@ function ProductCard({ group, onAdd, priceConfig, globalQty, onImageClick }) {
             {product.tag}
           </span>
         )}
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
+        {cardImages.length > 0 ? (
+          <>
+            <img
+              src={cardImages[cardImgIdx] || cardImages[0]}
+              alt={product.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+            />
+            {cardImages.length > 1 && (
+              <>
+                {cardImgIdx > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCardImgIdx(cardImgIdx - 1); }}
+                    style={{
+                      position: "absolute", left: 4, top: "50%", transform: "translateY(-50%)",
+                      width: 22, height: 22, borderRadius: 11,
+                      background: "rgba(0,0,0,0.35)", color: "#fff", border: "none",
+                      cursor: "pointer", fontSize: 12, fontWeight: 700,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    ‹
+                  </button>
+                )}
+                {cardImgIdx < cardImages.length - 1 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setCardImgIdx(cardImgIdx + 1); }}
+                    style={{
+                      position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)",
+                      width: 22, height: 22, borderRadius: 11,
+                      background: "rgba(0,0,0,0.35)", color: "#fff", border: "none",
+                      cursor: "pointer", fontSize: 12, fontWeight: 700,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    ›
+                  </button>
+                )}
+              </>
+            )}
+          </>
         ) : (
           product.emoji
         )}
@@ -520,7 +624,7 @@ function CartView({
   onSent,
   priceConfig,
 }) {
-  const { addOrder } = useApp();
+  const { addOrder, sellerPhone } = useApp();
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [sent, setSent] = useState(false);
@@ -543,9 +647,11 @@ function CartView({
       const tierPrices =
         priceConfig[item.id]?.prices || item.basePrices;
       const unitPrice = tierPrices[globalTierIdx] || tierPrices[0];
-      msg += `• ${item.code} - ${item.name} x${item.qty} = ${formatPrice(unitPrice * item.qty)}\n`;
+      const subtotal = unitPrice * item.qty;
+      msg += `• ${item.code} - ${item.name}\n`;
+      msg += `  x${item.qty} × ${formatPrice(unitPrice)} = ${formatPrice(subtotal)}\n\n`;
     });
-    msg += `\n*Total (${totalQty} unidades): ${formatPrice(total)}*`;
+    msg += `*Total (${totalQty} unidades): ${formatPrice(total)}*`;
     if (clientName) msg += `\nCliente: ${clientName}`;
     if (phone) msg += `\nTeléfono: ${phone}`;
 
@@ -561,7 +667,7 @@ function CartView({
     });
 
     window.open(
-      `https://wa.me/${SELLER_PHONE}?text=${encodeURIComponent(msg)}`,
+      `https://wa.me/${sellerPhone}?text=${encodeURIComponent(msg)}`,
       "_blank"
     );
     setSent(true);
@@ -918,7 +1024,7 @@ function CartView({
 }
 
 export default function CatalogoCoverUp() {
-  const { products, addOrder, priceConfig, loading } = useApp();
+  const { products, addOrder, priceConfig, loading, sellerPhone } = useApp();
   const [view, setView] = useState("catalog");
   const [cart, setCart] = useState([]);
   const [catFilter, setCatFilter] = useState("todos");
@@ -928,29 +1034,36 @@ export default function CatalogoCoverUp() {
   const [expandedIdx, setExpandedIdx] = useState(0);
 
   const categories = useMemo(() => {
-    const cats = new Set();
-    products.forEach((p) => cats.add(p.cat));
-    return [...cats].sort();
+    const catMap = new Map();
+    products.forEach((p) => {
+      if (!catMap.has(p.cat)) {
+        catMap.set(p.cat, p.categorySortOrder ?? 0);
+      }
+    });
+    return [...catMap.entries()]
+      .map(([name, sortOrder]) => ({ name, sortOrder }))
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+      .map((c) => c.name);
   }, [products]);
 
-  const filtered = useMemo(
-    () =>
-      products.filter((p) => {
+  const filtered = useMemo(() => {
+    return products
+      .filter((p) => {
         if (!p.active) return false;
-        const catOk =
-          catFilter === "todos" || p.cat === catFilter;
+        const catOk = catFilter === "todos" || p.cat === catFilter;
         const searchOk =
           !searchTerm ||
-          p.name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          p.code
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase());
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.code.toLowerCase().includes(searchTerm.toLowerCase());
         return catOk && searchOk;
-      }),
-    [products, catFilter, searchTerm]
-  );
+      })
+      .sort((a, b) => {
+        if (a.cat !== b.cat) {
+          return (a.categorySortOrder ?? 0) - (b.categorySortOrder ?? 0);
+        }
+        return (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id;
+      });
+  }, [products, catFilter, searchTerm]);
 
   // Agrupar productos: base + variantes (por variante_de O por códigos separados por coma)
   const groupedProducts = useMemo(() => {
@@ -1006,12 +1119,18 @@ export default function CatalogoCoverUp() {
     groups.forEach((g) => {
       const codes = g.base.code.split(",").map((c) => c.trim()).filter(Boolean);
       if (codes.length > 1) {
-        // Crear variantes virtuales para cada código
-        const virtualVariants = codes.map((code, i) => ({
-          ...g.base,
-          id: `${g.base.id}_v${i}`,
-          code: code,
-        }));
+        const variantImages = g.base.variantImages || {};
+        const virtualVariants = codes.map((code, i) => {
+          const vImages = variantImages[code] || [];
+          const mainImg = vImages.length > 0 ? vImages[0] : g.base.imageUrl;
+          return {
+            ...g.base,
+            id: `${g.base.id}_v${i}`,
+            code: code,
+            images: vImages.length > 0 ? vImages : g.base.images,
+            imageUrl: mainImg || g.base.imageUrl,
+          };
+        });
         finalGroups.push({
           ...g,
           id: g.base.id,
@@ -1023,7 +1142,11 @@ export default function CatalogoCoverUp() {
       }
     });
 
-    return finalGroups;
+    return finalGroups.sort((a, b) => {
+      const orderA = a.base.sortOrder ?? 0;
+      const orderB = b.base.sortOrder ?? 0;
+      return orderA - orderB || a.base.id - b.base.id;
+    });
   }, [filtered]);
 
   const totalItems = cart.reduce((s, c) => s + c.qty, 0);
