@@ -863,8 +863,11 @@ export default function AdminPricing() {
                 {/* Teléfono del vendedor */}
                 <div style={{ marginBottom: 32 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 800, marginBottom: 8 }}>Teléfono de WhatsApp</h3>
-                  <p style={{ fontSize: 12, color: "#666", marginBottom: 12 }}>
-                    Número al que los clientes enviarán sus pedidos por WhatsApp. Incluí el código de país sin el + (ej: 541154922800).
+                  <p style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>
+                    Número al que los clientes enviarán sus pedidos por WhatsApp.
+                  </p>
+                  <p style={{ fontSize: 11, color: "#999", marginBottom: 12, fontStyle: "italic" }}>
+                    Formato requerido: solo números, sin espacios ni guiones. Ejemplo: 5491136996026 (código país + código área + número)
                   </p>
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
                     <div style={{ flex: 1, maxWidth: 300 }}>
@@ -872,7 +875,7 @@ export default function AdminPricing() {
                         label="Número de teléfono"
                         value={phoneInput}
                         onChange={e => setPhoneInput(e.target.value)}
-                        placeholder="ej: 541154922800"
+                        placeholder="ej: 5491136996026"
                       />
                     </div>
                     <Button

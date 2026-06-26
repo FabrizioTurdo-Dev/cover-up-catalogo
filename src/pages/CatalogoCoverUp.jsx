@@ -975,7 +975,7 @@ function CartView({
               </label>
               <input
                 type="text"
-                placeholder="Ej: 1155221100"
+                placeholder="Ej: +54 9 11 3699-6026"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 style={{

@@ -57,7 +57,7 @@ export function AppProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [priceConfig, setPriceConfig] = useState({});
   const [sellerPhone, setSellerPhone] = useState(
-    () => localStorage.getItem("sellerPhone") || "1154922800"
+    () => localStorage.getItem("sellerPhone") || "5491136996026"
   );
 
   useEffect(() => {

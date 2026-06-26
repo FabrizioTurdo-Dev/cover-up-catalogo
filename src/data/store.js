@@ -1,7 +1,7 @@
 // src/data/store.js
 // Utilidades compartidas entre catálogo y admin
 
-export const SELLER_PHONE = "1154922800";
+export const SELLER_PHONE = "5491136996026";
 
 export function formatPrice(n) {
   return "$" + Number(n).toLocaleString("es-AR");
