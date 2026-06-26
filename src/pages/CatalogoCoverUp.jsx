@@ -649,7 +649,7 @@ function CartView({
       const unitPrice = tierPrices[globalTierIdx] || tierPrices[0];
       const subtotal = unitPrice * item.qty;
       msg += `• ${item.code} - ${item.name}\n`;
-      msg += `  x${item.qty} × ${formatPrice(unitPrice)} = ${formatPrice(subtotal)}\n\n`;
+      msg += `  ${item.qty} U × ${formatPrice(unitPrice)} = ${formatPrice(subtotal)}\n\n`;
     });
     msg += `*Total (${totalQty} unidades): ${formatPrice(total)}*`;
     if (clientName) msg += `\nCliente: ${clientName}`;
